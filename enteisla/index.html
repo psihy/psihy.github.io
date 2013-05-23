@@ -38,7 +38,7 @@
     </div>
 
 	<div id="vilarosa">
-	  <input id="sadao" type="text" value="" placeholder="翻訳したい文章を入力してください" onkeypress="if (event.keyCode == 13) fire();" />
+	  <input id="sadao" type="text" value="" onkeypress="if (event.keyCode == 13) fire();" />
       <div class="subordinates">
 		<input id="shiro" type="button" value="日本語" />
 		<input id="hanzo" type="button" value="English" />
@@ -49,7 +49,7 @@
 	<input id="chiho" type="button" hidden />
 
 	<div id="mansion">
-	  <input id="emi" type="text" value="" placeholder="enteisla" readonly />
+	  <input id="emi" type="text" value="" readonly />
 	  <div class="subordinates">
 		<input id="emerada" type="button" value="日本語" />
 		<input id="albert" type="button" value="English" />
@@ -153,6 +153,7 @@ function fire() { document.getElementById('chiho').click(); }
 ;; // run from here
 (select-devil "ja")
 (select-hero "ei")
+(element-focus! ($ "#sadao"))
 
 </script>
 
