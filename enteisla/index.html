@@ -1,0 +1,160 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>エンテイスラ語翻訳</title>
+    <style>
+      a { color:#cf4eff; text-decoration:none; }
+
+	  div#rokujoh { height:50px; margin:0px; padding-top:25px; }
+	  div#hitoma { color:#fff; font-size:25px; font-weight:bold;
+		  text-shadow:-1px -1px #033d89, 1px -1px #033d89, -1px 1px #033d89, 1px 1px #033d89; margin-left:20px; }
+
+	  div.subordinates { width:120px; height:100%; -moz-box-orient:vertical; -webkit-box-orient:vertical; }
+	  div.subordinates input { color:#fff; font-size:18px; font-weight:bold; text-align:center; vertical-align:middle;
+	      width:120px; height:34px; border:0px; }
+
+	  div#vilarosa { width:800px; height:108px; margin:20px auto 40px 20px;
+		  display:-moz-box; display:-webkit-box; -moz-box-orient:horizontal; -webkit-box-orient:horizontal; }
+	  input#sadao { border:3px solid #059de9; background-color:#fff; font-size:18px; width:680px; height:100%; padding-left:50px; }
+	  input#shiro { margin-bottom:3px; }
+	  input#hanzo { margin-bottom:3px; }
+	  input#kamio {}
+
+	  div#mansion { width:800px; height:108px; margin:40px auto 20px 20px;
+	    display:-moz-box; display:-webkit-box; -moz-box-orient:horizontal; -webkit-box-orient:horizontal; }
+	  input#emi { border:3px solid #ff049f; background-color:#fff; font-size:18px; width:680px; height:100%; padding-left:50px; }
+	  input#emerada { margin-bottom:3px; }
+	  input#albert { margin-bottom:3px; }
+	  input#bell {}
+
+	  div#mayumi { color:#3a7900; font-size:17px; text-align:left; margin:40px auto 40px auto; }
+	  div#mikity { color:#4f0e7f; font-size:16px; text-align:center; }
+	</style>
+  </head>
+
+  <body>
+    <div id="rokujoh">
+	  <div id="hitoma">エンテイスラ語翻訳</div>
+    </div>
+
+	<div id="vilarosa">
+	  <input id="sadao" type="text" value="" placeholder="翻訳したい文章を入力してください" onkeypress="if (event.keyCode == 13) fire();" />
+      <div class="subordinates">
+		<input id="shiro" type="button" value="日本語" />
+		<input id="hanzo" type="button" value="English" />
+		<input id="kamio" type="button" value="Ente Isla" />
+	  </div>
+	</div>
+
+	<input id="chiho" type="button" hidden />
+
+	<div id="mansion">
+	  <input id="emi" type="text" value="" placeholder="enteisla" readonly />
+	  <div class="subordinates">
+		<input id="emerada" type="button" value="日本語" />
+		<input id="albert" type="button" value="English" />
+		<input id="bell" type="button" value="Ente Isla" />
+	  </div>
+	</div>
+
+	<div id="mayumi">
+	  <ul>
+		<li>それっぽいルールに基づいて変換しています</li>
+		<li>間に和英や英和の機械翻訳を挟むので精度は察してください</li>
+	  </ul>
+	</div>
+
+	<div id="mikity">
+	  powered by <a href="http://www.bing.com/translator/">Microsoft Translator</a> and <a href="http://www.biwascheme.org/" >BiwaScheme</a>, created by <a href="http://twitter.com/psihy/">@psihy</a><br />
+	  <a href="http://psihy.github.io/">(✿☝Ծ‸Ծ)☝</a>
+	</div>
+
+<script type="text/javascript">
+function fire() { document.getElementById('chiho').click(); }
+</script>
+
+<script type="text/javascript" src="../resource/biwascheme.js">
+
+;; // global variable
+(define *devil* "ja")
+(define *hero* "ei")
+(define *buffer* `(("ja" . "") ("en" . "") ("ei" . "")))
+
+;; // imported functions
+(define (assoc-ref alist key)
+  (cdr (assoc key alist)))
+
+(define (identity x) x)
+
+;; // functions to translate
+(define (join-query x)
+  (string-append (car x) "=" (js-call (js-eval "encodeURIComponent") (cdr x))))
+
+(define (-microsoft-translator from to text)
+  (let ((api "http://api.microsofttranslator.com/V2/Ajax.svc/Translate")
+		(query `(("appID" . "68D088969D79A8B23AF8585CC83EBA2A05A97651")
+				 ("from" . ,from) ("to" . ,to) ("text" . ,text))))
+	(let ((uri (string-append api "?" (string-join (map join-query query) "&")) "oncomplete"))
+	  (json->sexp (receive-jsonp uri "oncomplete")))))
+
+(define (japanese->english text)
+  (-microsoft-translator "ja" "en" text))
+
+(define (english->japanese text)
+  (-microsoft-translator "en" "ja" text))
+
+(define (-convert-char x)
+  (if (regexp-exec "[^a-z]" (list->string (list x))) x
+	(string-ref "azyxewvtisrqpnomlkjhugfdcb" (- (char->integer x) (char->integer #\a)))))
+
+(define (-enteisla-translator text)
+  (list->string (map -convert-char (string->list text))))
+
+(define (capitalize text)
+  (string-append (js-invoke (js-invoke text "charAt" 0) "toUpperCase")
+				 (js-invoke text "slice" 1)))
+
+(define (enteisla->english text)
+  (let ((result (-enteisla-translator text)))
+	((if (< (length (string-split result " ")) 2) identity capitalize) result)))
+	
+(define (english->enteisla text)
+  (-enteisla-translator (string-downcase text)))
+
+;; // setting tags
+(define (-select ids colors tag)
+  (for-each (lambda (id) (set-style! ($ (cdr id)) "background-color" (assoc-ref colors "off"))) ids)
+  (set-style! ($ (assoc-ref ids tag)) "background-color" (assoc-ref colors "on")))
+
+(define (select-devil tag)
+  (-select `(("ja" . "#shiro") ("en" . "#hanzo") ("ei" . "#kamio")) `(("on" . "#059de9") ("off" . "#abcbdb")) tag))
+
+(define (select-hero tag)
+  (-select `(("ja" . "#emerada") ("en" . "#albert") ("ei" . "#bell")) `(("on" . "#ff049f") ("off" . "#dbabcb")) tag)
+  (js-eval (string-append "$('#emi').val('" (assoc-ref *buffer* tag) "')"))) ;; ??
+
+;; // add handlers
+(define-macro (generate-handlers ids s v)
+  (cons `begin
+		(map (lambda (id) `(add-handler! ($ ,(cdr id)) "click" (lambda (e) (set! ,v ,(car id)) (,s ,v))))
+			 ids)))
+
+(generate-handlers (("ja" . "#shiro") ("en" . "#hanzo") ("ei" . "#kamio")) select-devil *devil*)
+(generate-handlers (("ja" . "#emerada") ("en" . "#albert") ("ei" . "#bell")) select-hero *hero*)
+
+(add-handler! ($ "#chiho") "click" (lambda (e)
+  (let* ((text (get-content ($ "#sadao")))
+		 (english (case *devil* (("ja") (japanese->english text)) (("en") text) (("ei") (enteisla->english text)))))
+	(let ((japanese (case *devil* (("ja") text) (("en" "ei") (english->japanese english))))
+		  (enteisla (case *devil* (("ja" "en") (english->enteisla english)) (("ei") text))))
+	  (set! *buffer* `(("ja" . ,japanese) ("en" . ,english) ("ei" . ,enteisla)))
+	  (select-hero *hero*)))))
+
+;; // run from here
+(select-devil "ja")
+(select-hero "ei")
+
+</script>
+
+  </body>
+</html>
